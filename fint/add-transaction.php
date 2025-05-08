@@ -238,6 +238,11 @@ if (isset($_GET['success'])) {
                 <div class="card">
                     <div class="card-body">
                         <form action="" method="POST" id="transactionForm">
+                        <div class="mb-3">
+                            <label for="entry_name" class="form-label">Entry Name</label>
+                            <input type="text" class="form-control" id="entry_name" name="entry_name" required>
+                            <div class="form-text">This name will be displayed in the general ledger summary.</div>
+                        </div>
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label for="date" class="form-label">Date *</label>
@@ -252,6 +257,7 @@ if (isset($_GET['success'])) {
                                     <input type="text" class="form-control" id="description" name="description" required>
                                 </div>
                             </div>
+                            
                             
                             <div class="table-responsive mb-3">
                                 <table class="table table-bordered" id="transactionTable">

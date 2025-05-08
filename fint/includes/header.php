@@ -4,6 +4,21 @@ $userId = $_SESSION['user_id'];
 $userData = getUserData($userId);
 require_once 'config/functions.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Adjust the path to be relative to the root directory
+$base_path = dirname(__DIR__) . '/';
+require_once $base_path . 'config/functions.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: " . $base_path . "login.php");
+    exit();
+}
+
+
 ?>
 
 <header class="navbar navbar-expand-md navbar-light sticky-top bg-white">

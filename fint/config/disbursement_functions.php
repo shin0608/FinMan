@@ -38,83 +38,59 @@ function generateNextVoucherNumber() {
     }
 }
 
-function getDisbursements($status, $startDate, $endDate, $search) {
+function getDisbursements($status = '', $startDate = '', $endDate = '', $search = '') {
     $conn = getConnection();
     try {
-        $sql = "SELECT 
-                d.id,
-                d.voucher_number,
-                d.disbursement_date,
-                d.payee,
-                d.amount,
-                d.description,
-                d.status,
-                d.created_at,
-                d.void_reason,
-                d.approved_by,
-                d.approved_at,
-                creator.username as created_by_name,
-                approver.username as approver_name
-            FROM disbursements d
-            LEFT JOIN users creator ON d.created_by = creator.id
-            LEFT JOIN users approver ON d.approved_by = approver.id
-            WHERE 1=1";
-        
+        $sql = "SELECT d.*, u.name as created_by_name, ua.name as approver_name 
+                FROM disbursements d 
+                LEFT JOIN users u ON d.created_by = u.id
+                LEFT JOIN users ua ON d.approved_by = ua.id
+                WHERE 1=1";
         $params = [];
-        $types = '';
-
-        if ($status && $status !== 'All') {
+        $types = "";
+        
+        if ($status) {
             $sql .= " AND d.status = ?";
             $params[] = $status;
-            $types .= 's';
+            $types .= "s";
         }
-
+        
         if ($startDate) {
-            $sql .= " AND DATE(d.disbursement_date) >= ?";
+            $sql .= " AND d.disbursement_date >= ?";
             $params[] = $startDate;
-            $types .= 's';
+            $types .= "s";
         }
-
+        
         if ($endDate) {
-            $sql .= " AND DATE(d.disbursement_date) <= ?";
+            $sql .= " AND d.disbursement_date <= ?";
             $params[] = $endDate;
-            $types .= 's';
+            $types .= "s";
         }
-
+        
         if ($search) {
             $sql .= " AND (d.voucher_number LIKE ? OR d.payee LIKE ? OR d.description LIKE ?)";
             $searchTerm = "%$search%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
-            $types .= 'sss';
+            $types .= "sss";
         }
-
-        $sql .= " ORDER BY d.created_at DESC";
+        
+        $sql .= " ORDER BY d.disbursement_date DESC, d.id DESC";
         
         $stmt = $conn->prepare($sql);
-        
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
         }
-
+        
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        $disbursements = [];
-        while ($row = $result->fetch_assoc()) {
-            $disbursements[] = $row;
-        }
-        
-        return $disbursements;
-
+        return $result->fetch_all(MYSQLI_ASSOC);
     } catch (Exception $e) {
         error_log("Error in getDisbursements: " . $e->getMessage());
         throw $e;
     } finally {
-        if ($conn) {
-            $conn->close();
-        }
+        $conn->close();
     }
 }
 

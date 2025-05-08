@@ -140,3 +140,33 @@ if (!function_exists('logActivity')) {
         }
     }
 }
+
+if (!function_exists('isAdmin')) {
+    function isAdmin($userId) {
+        if (!$userId) return false;
+        
+        $conn = getConnection();
+        try {
+            $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
+            $stmt->bind_param("i", $userId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($row = $result->fetch_assoc()) {
+                return strtolower($row['role']) === 'admin';
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Error in isAdmin function: " . $e->getMessage());
+            return false;
+        } finally {
+            $conn->close();
+        }
+    }
+}
+
+if (!function_exists('hasAdminAccess')) {
+    function hasAdminAccess() {
+        return isset($_SESSION['user_id']) && isAdmin($_SESSION['user_id']);
+    }
+}

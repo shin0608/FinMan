@@ -21,3 +21,4 @@ function getConnection() {
 function closeConnection($conn) {
     $conn->close();
 }
+

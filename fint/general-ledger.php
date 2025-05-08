@@ -239,6 +239,37 @@ if (!empty($_GET['status'])) {
     white-space: pre-wrap;
     max-width: 300px;
 }
+.accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: #000;
+}
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+}
+.accordion-button .badge {
+    font-size: 0.75rem;
+}
+.accordion-body {
+    padding: 0;
+}
+.table {
+    margin-bottom: 0;
+}
+.table td {
+    vertical-align: middle;
+}
+.current-info-bar {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-left: 4px solid #0d6efd;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+}
+.gap-2 {
+    gap: 0.5rem !important;
+}
 
 
     </style>
@@ -257,9 +288,6 @@ if (!empty($_GET['status'])) {
                     <!-- In your general-ledger.php HTML -->
 <div class="btn-toolbar mb-2 mb-md-0">
     <div class="btn-group me-2">
-        <button type="button" class="btn btn-outline-secondary" onclick="printLedger()">
-            <i class="bi bi-printer"></i> Print
-        </button>
         <?php if (isAdmin($_SESSION['user_id'])): ?>
         <button type="button" class="btn btn-info" onclick="showApprovalsModal()">
             <i class="bi bi-check-circle"></i> Approvals
@@ -343,58 +371,107 @@ if (!empty($_GET['status'])) {
                             </small>
                         </div>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card">
+    <div class="card-body p-0">
+        <div class="accordion" id="ledgerAccordion">
+            <?php
+            $currentRef = '';
+            $entryGroups = [];
+            
+            // Group entries by reference number
+            foreach ($ledgerEntries as $entry) {
+                $ref = $entry['reference_number'];
+                if (!isset($entryGroups[$ref])) {
+                    $entryGroups[$ref] = [
+                        'entries' => [],
+                        'total_debit' => 0,
+                        'total_credit' => 0,
+                        'date' => $entry['transaction_date'],
+                        'status' => $entry['status'],
+                        'entry_name' => $entry['entry_name'] ?? 'Untitled Entry',
+                        'description' => $entry['description'],
+                        'transaction_id' => $entry['id']
+                    ];
+                }
+                $entryGroups[$ref]['entries'][] = $entry;
+                $entryGroups[$ref]['total_debit'] += $entry['debit_amount'];
+                $entryGroups[$ref]['total_credit'] += $entry['credit_amount'];
+            }
+            ?>
+
+
+            <?php foreach ($entryGroups as $ref => $group): ?>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#ref-<?php echo htmlspecialchars($ref); ?>">
+                        <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                            <div>
+                                <strong><?php echo htmlspecialchars($group['entry_name']); ?></strong>
+                                <small class="text-muted ms-2">
+                                    (Ref: <?php echo htmlspecialchars($ref); ?> | 
+                                    <?php echo date('Y-m-d', strtotime($group['date'])); ?>)
+                                </small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-<?php echo getStatusColor($group['status']); ?> me-3">
+                                    <?php echo htmlspecialchars($group['status']); ?>
+                                </span>
+                                <span class="text-muted small">
+                                    <strong>₱ <?php echo number_format($group['total_debit'], 2); ?></strong>
+                                </span>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="ref-<?php echo htmlspecialchars($ref); ?>" class="accordion-collapse collapse">
+                    <div class="accordion-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Reference</th>
                                         <th>Account</th>
-                                        <th>Description</th>
+                                        <th>Particulars</th>
                                         <th class="text-end">Debit</th>
                                         <th class="text-end">Credit</th>
-                                        <th class="text-center">Status</th>
-                                        <th class="actions-column text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if (empty($ledgerEntries)): ?>
-                                        <tr>
-                                            <td colspan="8" class="text-center">No entries found</td>
-                                        </tr>
-                                    <?php else: ?>
-                                        <?php foreach ($ledgerEntries as $entry): ?>
-                                        <tr class="<?php echo $entry['status'] === 'Voided' ? 'voided' : 
-                                                       ($entry['status'] === 'Pending Void' ? 'pending-void' : ''); ?>">
-                                            <td><?php echo date('Y-m-d', strtotime($entry['transaction_date'])); ?></td>
-                                            <td><?php echo htmlspecialchars($entry['reference_number']); ?></td>
-                                            <td><?php echo htmlspecialchars($entry['account_code'] . ' - ' . $entry['account_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($entry['description']); ?></td>
-                                            <td class="text-end">
-                                                <?php echo $entry['debit_amount'] > 0 ? formatCurrency($entry['debit_amount']) : ''; ?>
-                                            </td>
-                                            <td class="text-end">
-                                                <?php echo $entry['credit_amount'] > 0 ? formatCurrency($entry['credit_amount']) : ''; ?>
-                                            </td>
-                                            <td class="text-center">
-                                                <?php echo htmlspecialchars($entry['status']); ?>
-                                            </td>
-                                            <td class="actions-column text-center">
-                                                <?php if ($entry['status'] === 'Posted'): ?>
-                                                    <button type="button" class="btn btn-danger btn-sm" 
-                                                            onclick="voidTransaction(<?php echo $entry['id']; ?>)">
-                                                        <i class="bi bi-x-circle"></i> Void
-                                                    </button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    <?php foreach ($group['entries'] as $entry): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($entry['account_code'] . ' - ' . $entry['account_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($entry['particulars'] ?? $entry['description']); ?></td>
+                                        <td class="text-end"><?php echo $entry['debit_amount'] > 0 ? formatCurrency($entry['debit_amount']) : ''; ?></td>
+                                        <td class="text-end"><?php echo $entry['credit_amount'] > 0 ? formatCurrency($entry['credit_amount']) : ''; ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <tr class="table-light">
+                                        <td colspan="2"><strong>Totals</strong></td>
+                                        <td class="text-end"><strong><?php echo formatCurrency($group['total_debit']); ?></strong></td>
+                                        <td class="text-end"><strong><?php echo formatCurrency($group['total_credit']); ?></strong></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
+                        <!-- Action Buttons -->
+                        <?php if ($group['status'] === 'Posted'): ?>
+                        <div class="p-3 bg-light border-top">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-danger" 
+                                        onclick="voidTransaction(<?php echo $group['transaction_id']; ?>)">
+                                    <i class="bi bi-x-circle"></i> Void Entry
+                                </button>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+
 
                     <!-- Pagination -->
                     <?php if ($totalPages > 1): ?>

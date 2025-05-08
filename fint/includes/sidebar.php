@@ -1,6 +1,7 @@
 <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-white sidebar">
     <div class="position-sticky">
         <ul class="nav flex-column">
+            
             <li class="nav-item">
                 <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>" href="index.php">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
@@ -27,9 +28,36 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'active' : ''; ?>" href="reports.php">
+                <a class="nav-link" data-bs-toggle="collapse" href="#reportsSubmenu" role="button" 
+                   aria-expanded="<?php echo (strpos(basename($_SERVER['PHP_SELF']), 'report-') === 0) ? 'true' : 'false'; ?>" 
+                   aria-controls="reportsSubmenu">
                     <i class="bi bi-file-earmark-text me-2"></i> Reports
+                    <i class="bi bi-chevron-down float-end"></i>
                 </a>
+                <div class="collapse <?php echo (strpos(basename($_SERVER['PHP_SELF']), 'report-') === 0) ? 'show' : ''; ?>" id="reportsSubmenu">
+                    <ul class="nav flex-column ms-3">
+                        <!-- Financial Statements -->
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'report-income-statement.php' ? 'active' : ''; ?>" 
+                               href="report-income-statement.php">
+                                <i class="bi bi-dash"></i> Income Statement
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'report-balance-sheet.php' ? 'active' : ''; ?>" 
+                               href="report-balance-sheet.php">
+                                <i class="bi bi-dash"></i> Balance Sheet
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'report-cash-flow.php' ? 'active' : ''; ?>" 
+                               href="report-cash-flow.php">
+                                <i class="bi bi-dash"></i> Cash Flow Statement
+                            </a>
+                        </li>
+                        <!-- Add other report menu items -->
+                    </ul>
+                </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'forecast.php' ? 'active' : ''; ?>" href="forecast.php">
@@ -38,7 +66,7 @@
             </li>
         </ul>
         
-        <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'Admin'): ?>
+        <?php if (isAdmin($_SESSION['user_id'])): ?>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Administration</span>
         </h6>
@@ -49,11 +77,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active' : ''; ?>" href="settings.php">
-                    <i class="bi bi-gear me-2"></i> System Settings
+                <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'system-logs.php' ? 'active' : ''; ?>" href="view-user-logs.php">
+                    <i class="bi bi-clock-history me-2"></i> System Logs
                 </a>
             </li>
         </ul>
         <?php endif; ?>
     </div>
 </nav>
+

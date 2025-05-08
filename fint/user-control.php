@@ -130,9 +130,7 @@ $pageTitle = "User Control";
                 <div class="row mb-4">
                     <div class="col-md-12">
                         <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">User Access Management</h5>
-                            </div>
+
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover">
@@ -164,9 +162,7 @@ $pageTitle = "User Control";
                                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#changeRoleModal<?php echo $user['id']; ?>">
                                                         Change Role
                                                     </button>
-                                                    <a href="view-user-logs.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-info">
-                                                        View Logs
-                                                    </a>
+                                                    
                                                 </td>
                                             </tr>
                                             
@@ -214,49 +210,8 @@ $pageTitle = "User Control";
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Access Logs</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>User</th>
-                                                <th>Login Time</th>
-                                                <th>Logout Time</th>
-                                                <th>IP Address</th>
-                                                <th>Browser</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($accessLogs as $log): ?>
-                                            <tr>
-                                                <td><?php echo $log['full_name'] . ' (' . $log['username'] . ')'; ?></td>
-                                                <td><?php echo date('Y-m-d H:i:s', strtotime($log['login_time'])); ?></td>
-                                                <td><?php echo $log['logout_time'] ? date('Y-m-d H:i:s', strtotime($log['logout_time'])) : 'Active/No Logout'; ?></td>
-                                                <td><?php echo $log['ip_address']; ?></td>
-                                                <td><?php echo substr($log['user_agent'], 0, 50) . (strlen($log['user_agent']) > 50 ? '...' : ''); ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <?php if (empty($accessLogs)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center">No access logs found</td>
-                                            </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
+                            </main>
+        
     
     <?php include 'includes/footer.php'; ?>
 </body>
