@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once 'config/functions.php';
+require_once 'config/disbursement_functions.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -7,32 +9,47 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Include necessary files
-require_once 'config/functions.php';
-
-// Get financial summary data
-$totalAssets = getTotalAssets();
-$totalLiabilities = getTotalLiabilities();
-$totalEquity = getTotalEquity();
-$netIncome = getNetIncome();
-
-// Get recent transactions
-$recentTransactions = getRecentTransactions(10);
-
-// Get recent disbursements
-$recentDisbursements = getRecentDisbursements(5);
-
-// Get recent payments
-$recentPayments = getRecentPayments(5);
-
-// Set page title
-$pageTitle = "Dashboard";
+// Get dashboard data
+try {
+    $totalAssets = getTotalAssets();
+    $totalLiabilities = getTotalLiabilities();
+    $totalEquity = getTotalEquity();
+    $netIncome = getNetIncome();
+} catch (Exception $e) {
+    error_log("Error loading dashboard data: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <?php include 'includes/head.php'; ?>
+    <style>
+        .dashboard-card {
+            border-radius: 10px;
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-assets { border-left-color: #28a745; }
+        .card-liabilities { border-left-color: #dc3545; }
+        .card-equity { border-left-color: #17a2b8; }
+        .card-income { border-left-color: #ffc107; }
+        .system-info-bar {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 4px solid #0d6efd;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 20px;
+        }
+        .system-info-bar i {
+            margin-right: 5px;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -42,166 +59,94 @@ $pageTitle = "Dashboard";
             <?php include 'includes/sidebar.php'; ?>
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Dashboard</h1>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card">
+                <!-- System Info Bar -->
+               
+            
+
+                <!-- Dashboard Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card dashboard-card card-assets h-100">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo formatCurrency($totalAssets); ?></h5>
-                                <p class="card-text text-muted">Total Assets</p>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-2">Total Assets</h6>
+                                        <h4 class="mb-0">₱<?php echo number_format($totalAssets, 2); ?></h4>
+                                    </div>
+                                    <div class="ms-3">
+                                        <i class="bi bi-bank fs-2 text-success"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card">
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card dashboard-card card-liabilities h-100">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo formatCurrency($totalLiabilities); ?></h5>
-                                <p class="card-text text-muted">Total Liabilities</p>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-2">Total Liabilities</h6>
+                                        <h4 class="mb-0">₱<?php echo number_format($totalLiabilities, 2); ?></h4>
+                                    </div>
+                                    <div class="ms-3">
+                                        <i class="bi bi-cash-stack fs-2 text-danger"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card">
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card dashboard-card card-equity h-100">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo formatCurrency($totalEquity); ?></h5>
-                                <p class="card-text text-muted">Total Equity</p>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-2">Total Equity</h6>
+                                        <h4 class="mb-0">₱<?php echo number_format($totalEquity, 2); ?></h4>
+                                    </div>
+                                    <div class="ms-3">
+                                        <i class="bi bi-pie-chart fs-2 text-info"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card">
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card dashboard-card card-income h-100">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo formatCurrency($netIncome); ?></h5>
-                                <p class="card-text text-muted">Net Income</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Transactions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Reference</th>
-                                                <th>Description</th>
-                                                <th>Amount</th>
-                                                <th>Status</th>
-                                                <th>Created By</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($recentTransactions as $transaction): ?>
-                                            <tr>
-                                                <td><?php echo date('Y-m-d', strtotime($transaction['transaction_date'])); ?></td>
-                                                <td><?php echo $transaction['reference_number']; ?></td>
-                                                <td><?php echo $transaction['description']; ?></td>
-                                                <td><?php echo formatCurrency($transaction['amount']); ?></td>
-                                                <td><span class="badge bg-success"><?php echo $transaction['status']; ?></span></td>
-                                                <td><?php echo $transaction['created_by']; ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <?php if (empty($recentTransactions)): ?>
-                                            <tr>
-                                                <td colspan="6" class="text-center">No transactions found</td>
-                                            </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <h6 class="text-muted mb-2">Net Income</h6>
+                                        <h4 class="mb-0">₱<?php echo number_format($netIncome, 2); ?></h4>
+                                    </div>
+                                    <div class="ms-3">
+                                        <i class="bi bi-graph-up-arrow fs-2 text-warning"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Payments</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Receipt #</th>
-                                                <th>Payer</th>
-                                                <th>Method</th>
-                                                <th>Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($recentPayments as $payment): ?>
-                                            <tr>
-                                                <td><?php echo date('Y-m-d', strtotime($payment['payment_date'])); ?></td>
-                                                <td><?php echo $payment['receipt_number']; ?></td>
-                                                <td><?php echo $payment['payer']; ?></td>
-                                                <td><?php echo $payment['payment_method']; ?></td>
-                                                <td><?php echo formatCurrency($payment['amount']); ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <?php if (empty($recentPayments)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center">No payments found</td>
-                                            </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Disbursements</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Voucher #</th>
-                                                <th>Payee</th>
-                                                <th>Amount</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($recentDisbursements as $disbursement): ?>
-                                            <tr>
-                                                <td><?php echo date('Y-m-d', strtotime($disbursement['disbursement_date'])); ?></td>
-                                                <td><?php echo $disbursement['voucher_number']; ?></td>
-                                                <td><?php echo $disbursement['payee']; ?></td>
-                                                <td><?php echo formatCurrency($disbursement['amount']); ?></td>
-                                                <td><span class="badge bg-success"><?php echo $disbursement['status']; ?></span></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                            <?php if (empty($recentDisbursements)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center">No disbursements found</td>
-                                            </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+                <script>
+                    // Update datetime display
+                    function updateDateTime() {
+                        const now = new Date();
+                        const formatted = now.getUTCFullYear() + '-' + 
+                                        String(now.getUTCMonth() + 1).padStart(2, '0') + '-' + 
+                                        String(now.getUTCDate()).padStart(2, '0') + ' ' + 
+                                        String(now.getUTCHours()).padStart(2, '0') + ':' + 
+                                        String(now.getUTCMinutes()).padStart(2, '0') + ':' + 
+                                        String(now.getUTCSeconds()).padStart(2, '0');
+                        document.getElementById('currentDateTime').textContent = formatted;
+                    }
+
+                    // Initialize datetime display and update every second
+                    updateDateTime();
+                    setInterval(updateDateTime, 1000);
+                </script>
             </main>
         </div>
     </div>

@@ -63,3 +63,20 @@ if (!function_exists('hasAdminAccess')) {
         return isset($_SESSION['user_id']) && isAdmin($_SESSION['user_id']);
     }
 }
+
+if (!function_exists('getStatusBadgeClass')) {
+    function getStatusBadgeClass($status) {
+        switch (strtolower($status)) {
+            case 'approved':
+                return 'success';
+            case 'pending':
+                return 'warning';
+            case 'void':
+                return 'danger';
+            case 'draft':
+                return 'secondary';
+            default:
+                return 'primary';
+        }
+    }
+}
