@@ -16,14 +16,15 @@ $accounts = getAllAccounts();
 $success = '';
 $error = '';
 
+
+
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $date = $_POST['date'] ?? date('Y-m-d');
-    $voucher = $_POST['voucher'] ?? generateVoucherNumber('CD', $date);
     $payee = $_POST['payee'] ?? '';
+    $date = $_POST['disbursement_date'] ?? date('Y-m-d');
+    $referenceNumber = $_POST['reference_number'] ?? '';
     $amount = $_POST['amount'] ?? 0;
-    $description = $_POST['description'] ?? '';
-    $expenseAccountId = $_POST['expense_account_id'] ?? '';
+    $purpose = $_POST['purpose'] ?? '';
     
     if (empty($date) || empty($voucher) || empty($payee) || empty($amount) || empty($expenseAccountId)) {
         $error = 'Please fill in all required fields';
@@ -96,6 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         closeConnection($conn);
     }
 }
+
+
 
 // Generate new voucher number
 $newVoucher = generateVoucherNumber('CD');

@@ -23,11 +23,12 @@ if (!isset($_SESSION['user_id'])) {
 
 <header class="navbar navbar-expand-md navbar-light sticky-top bg-white">
     <div class="container-fluid">
-        <button class="navbar-toggler" type="button" id="sidebarToggle">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <button id="sidebarCollapse" class="navbar-toggler d-md-none" type="button">
+    <span class="navbar-toggler-icon"></span>
+</button>
         <img src="assets/img/logo.png" class="navbar-brand" style="width: 50px; height: 50px;">
         <a class="navbar-brand" href="index.php">Financial Management System</a>
+
         
         <div class="w-100"></div>
         <div class="navbar-nav">

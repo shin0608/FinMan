@@ -3,6 +3,41 @@ session_start();
 require_once 'config/functions.php';
 require_once 'config/disbursement_functions.php';
 
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Update database structure with additional fields
+$conn = getConnection();
+try {
+    $sql = "CREATE TABLE IF NOT EXISTS disbursements (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        voucher_number VARCHAR(50) NOT NULL,
+        disbursement_date DATE NOT NULL,
+        payee VARCHAR(255) NOT NULL,
+        amount DECIMAL(15,2) NOT NULL,
+        description TEXT,
+        reference_number VARCHAR(50),
+        status ENUM('Pending', 'Completed', 'Voided') NOT NULL DEFAULT 'Pending',
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        approved_by INT NULL,
+        approved_at TIMESTAMP NULL,
+        void_reason TEXT,
+        remarks TEXT,
+        FOREIGN KEY (created_by) REFERENCES users(id),
+        FOREIGN KEY (approved_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+    
+    $conn->query($sql);
+} catch (Exception $e) {
+    error_log("Error updating database structure: " . $e->getMessage());
+} finally {
+    closeConnection($conn);
+}
+
 // Check if user is not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
